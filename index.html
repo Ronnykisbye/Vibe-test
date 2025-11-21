@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <!-- Afsnit 01 – Grundopsætning -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spilletid – Børnefodbold</title>
+  <style>
+    /* Afsnit 02 – Basis layout og farver */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: #f4f5f7;
+      color: #222;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin-top: 0.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    p {
+      margin-top: 0.2rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      margin-bottom: 1rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Afsnit 03 – Knapper og inputs */
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      white-space: nowrap;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: #2563eb;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.55rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      font-size: 0.95rem;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .input-row button {
+      flex-shrink: 0;
+    }
+
+    /* Afsnit 04 – Lister og kolonner */
+    .simple-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+
+    .simple-list li {
+      padding: 0.25rem 0;
+      font-size: 0.9rem;
+    }
+
+    .columns {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+
+    .column {
+      flex: 1;
+      background: #f9fafb;
+      border-radius: 10px;
+      padding: 0.6rem;
+      min-height: 80px;
+    }
+
+    .column h3 {
+      font-size: 0.95rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .player-column {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .player-btn {
+      padding: 0.45rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 0.9rem;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 90px;
+    }
+
+    .player-name {
+      font-weight: 500;
+    }
+
+    .player-time {
+      font-size: 0.75rem;
+      opacity: 0.8;
+    }
+
+    .player-on {
+      background: #dcfce7;
+      border-color: #22c55e;
+    }
+
+    .player-off {
+      background: #e5e7eb;
+      border-color: #9ca3af;
+    }
+
+    /* Afsnit 05 – Timer og statistik */
+    .timer-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .timer-display {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.35rem 0.3rem;
+    }
+
+    th {
+      border-bottom: 1px solid #e5e7eb;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #6b7280;
+    }
+
+    tbody tr:nth-child(odd) {
+      background: #f9fafb;
+    }
+
+    tfoot td {
+      border-top: 1px solid #e5e7eb;
+      font-weight: 600;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin: 1rem 0 0.5rem;
+    }
+
+    /* Afsnit 06 – Responsivt design (mobil først) */
+    @media (min-width: 700px) {
+      .columns {
+        flex-direction: row;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- Afsnit 07 – Overskrift -->
+    <header class="card">
+      <h1>Spilletid til børnefodbold</h1>
+      <p>
+        Skriv spillernes navne ind, vælg hvem der er på banen, og lad appen
+        holde styr på spilletiden for dig.
+      </p>
+    </header>
+
+    <!-- Afsnit 08 – Oprettelse af spillere (før kamp) -->
+    <section id="setupSection" class="card">
+      <h2>1. Opret spillere</h2>
+      <p>
+        Tilføj alle spillere i truppen. Du kan bruge Enter-tasten for at tilføje
+        en spiller hurtigt.
+      </p>
+
+      <div class="input-row">
+        <input
+          id="playerNameInput"
+          type="text"
+          placeholder="Spillernavn (fx Emil)"
+        />
+        <button id="addPlayerButton" class="btn-primary">Tilføj spiller</button>
+      </div>
+
+      <ul id="playerList" class="simple-list"></ul>
+
+      <button id="startMatchButton" class="btn-secondary">
+        Gå til kampvisning
+      </button>
+    </section>
+
+    <!-- Afsnit 09 – Kampvisning (under kamp) -->
+    <section id="matchSection" class="card hidden">
+      <h2>2. Under kampen</h2>
+      <p>
+        Tryk på en spiller for at flytte vedkommende mellem "På banen" og
+        "Udskiftere". Tiden tælles kun for dem, der er på banen.
+      </p>
+
+      <div class="timer-row">
+        <div class="timer-display">
+          Kampur:
+          <span id="matchClock">00:00</span>
+        </div>
+        <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+          <button id="toggleTimerButton" class="btn-primary">
+            Start tid
+          </button>
+          <button id="resetTimerButton" class="btn-danger">
+            Nulstil alle tider
+          </button>
+        </div>
+      </div>
+
+      <div class="columns">
+        <div class="column">
+          <h3>På banen</h3>
+          <div id="onFieldList" class="player-column"></div>
+        </div>
+        <div class="column">
+          <h3>Udskiftere</h3>
+          <div id="benchList" class="player-column"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Afsnit 10 – Statistik (spilletid pr. spiller) -->
+    <section id="statsSection" class="card hidden">
+      <h2>3. Spilletid pr. spiller</h2>
+      <p>
+        Brug denne oversigt til at sammenligne, hvor længe hver spiller har
+        været på banen.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Spiller</th>
+            <th>Spilletid</th>
+          </tr>
+        </thead>
+        <tbody id="statsBody"></tbody>
+        <tfoot>
+          <tr>
+            <td>Samlet kampur</td>
+            <td id="statsTotal">00:00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>
+
+    <footer>
+      Lokalt i browseren – ingen data sendes ud af trænerens enhed.
+    </footer>
+  </div>
+
+  <script>
+    // Afsnit 11 – Data-strukturer
+    const players = []; // Liste over alle spillere
+    let nextPlayerId = 1; // Unik id til hver spiller
+
+    let timerRunning = false; // Er kampuret i gang?
+    let timerId = null; // Id til setInterval
+    let totalSeconds = 0; // Samlet kamp-tid i sekunder
+
+    // Afsnit 12 – Hjælpefunktioner (DOM og formatering)
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60);
+      const s = seconds % 60;
+      return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+    }
+
+    // Afsnit 13 – Render funktioner (opdaterer skærmen)
+    function renderPlayerSetupList() {
+      const ul = $("playerList");
+      if (!ul) return;
+
+      if (players.length === 0) {
+        ul.innerHTML = "<li>Ingen spillere endnu.</li>";
+        return;
+      }
+
+      ul.innerHTML = "";
+      players.forEach((p) => {
+        const li = document.createElement("li");
+        li.textContent = "• " + p.name;
+        ul.appendChild(li);
+      });
+    }
+
+    function renderMatchLists() {
+      const onFieldContainer = $("onFieldList");
+      const benchContainer = $("benchList");
+
+      onFieldContainer.innerHTML = "";
+      benchContainer.innerHTML = "";
+
+      players.forEach((player) => {
+        const btn = document.createElement("button");
+        btn.classList.add("player-btn");
+        btn.classList.add(player.isOnField ? "player-on" : "player-off");
+
+        const nameSpan = document.createElement("span");
+        nameSpan.classList.add("player-name");
+        nameSpan.textContent = player.name;
+
+        const timeSpan = document.createElement("span");
+        timeSpan.classList.add("player-time");
+        timeSpan.textContent = "Spilletid: " + formatTime(player.secondsOnField);
+
+        btn.appendChild(nameSpan);
+        btn.appendChild(timeSpan);
+
+        btn.addEventListener("click", () => {
+          togglePlayerOnField(player.id);
+        });
+
+        if (player.isOnField) {
+          onFieldContainer.appendChild(btn);
+        } else {
+          benchContainer.appendChild(btn);
+        }
+      });
+    }
+
+    function renderStats() {
+      const body = $("statsBody");
+      body.innerHTML = "";
+
+      players.forEach((p) => {
+        const tr = document.createElement("tr");
+        const tdName = document.createElement("td");
+        const tdTime = document.createElement("td");
+
+        tdName.textContent = p.name;
+        tdTime.textContent = formatTime(p.secondsOnField);
+
+        tr.appendChild(tdName);
+        tr.appendChild(tdTime);
+        body.appendChild(tr);
+      });
+
+      $("statsTotal").textContent = formatTime(totalSeconds);
+      $("matchClock").textContent = formatTime(totalSeconds);
+    }
+
+    function fullRender() {
+      renderPlayerSetupList();
+      renderMatchLists();
+      renderStats();
+    }
+
+    // Afsnit 14 – Håndtering af spillere
+    function addPlayer(name) {
+      const trimmed = name.trim();
+      if (!trimmed) return;
+
+      players.push({
+        id: nextPlayerId++,
+        name: trimmed,
+        secondsOnField: 0,
+        isOnField: false,
+      });
+
+      fullRender();
+    }
+
+    function togglePlayerOnField(id) {
+      const player = players.find((p) => p.id === id);
+      if (!player) return;
+
+      player.isOnField = !player.isOnField;
+      renderMatchLists();
+      renderStats();
+    }
+
+    // Afsnit 15 – Timer-logik
+    function startTimer() {
+      if (timerRunning) return;
+      timerRunning = true;
+
+      $("toggleTimerButton").textContent = "Pause tid";
+
+      timerId = setInterval(() => {
+        totalSeconds++;
+
+        players.forEach((p) => {
+          if (p.isOnField) {
+            p.secondsOnField++;
+          }
+        });
+
+        renderMatchLists();
+        renderStats();
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      if (!timerRunning) return;
+      timerRunning = false;
+
+      $("toggleTimerButton").textContent = "Start tid";
+
+      clearInterval(timerId);
+      timerId = null;
+    }
+
+    function toggleTimer() {
+      if (timerRunning) {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
+
+    function resetAllTimes() {
+      if (!confirm("Vil du nulstille alle tider? Dette kan ikke fortrydes.")) {
+        return;
+      }
+
+      pauseTimer();
+      totalSeconds = 0;
+
+      players.forEach((p) => {
+        p.secondsOnField = 0;
+      });
+
+      fullRender();
+    }
+
+    // Afsnit 16 – Init og event handlers
+    document.addEventListener("DOMContentLoaded", () => {
+      const nameInput = $("playerNameInput");
+      const addBtn = $("addPlayerButton");
+      const startMatchBtn = $("startMatchButton");
+      const toggleTimerBtn = $("toggleTimerButton");
+      const resetTimerBtn = $("resetTimerButton");
+
+      addBtn.addEventListener("click", () => {
+        addPlayer(nameInput.value);
+        nameInput.value = "";
+        nameInput.focus();
+      });
+
+      nameInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          addPlayer(nameInput.value);
+          nameInput.value = "";
+        }
+      });
+
+      startMatchBtn.addEventListener("click", () => {
+        if (players.length === 0) {
+          alert("Tilføj mindst én spiller, før du går videre.");
+          return;
+        }
+
+        $("setupSection").classList.add("hidden");
+        $("matchSection").classList.remove("hidden");
+        $("statsSection").classList.remove("hidden");
+
+        fullRender();
+      });
+
+      toggleTimerBtn.addEventListener("click", toggleTimer);
+      resetTimerBtn.addEventListener("click", resetAllTimes);
+
+      // Første render (ingen spillere endnu)
+      fullRender();
+    });
+  </script>
+</body>
+</html>
