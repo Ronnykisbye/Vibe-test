@@ -422,6 +422,18 @@
       transform: translateY(-1px);
     }
 
+    /* Lys tilstand – gør tekst på knapper tydelig */
+    body.theme-light .player-btn {
+      background: #ffffff;
+      border-color: #cbd5e1;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    body.theme-light .player-name,
+    body.theme-light .player-time {
+      color: #111827 !important;
+    }
+
     /* Afsnit 08 – Timer og statistik */
 
     .timer-row {
@@ -811,20 +823,28 @@
 
         const timeSpan = document.createElement("span");
         timeSpan.classList.add("player-time");
-        timeSpan.textContent = "Spilletid: " + formatClock(player.secondsOnField);
+
+        if (player.isOnField) {
+          // På banen: normal spilletid
+          timeSpan.textContent =
+            "Spilletid: " + formatClock(player.secondsOnField);
+        } else {
+          // Udskifter: Manglende tid på banen
+          let diff = 0;
+          if (maxPlayed > 0) {
+            diff = Math.max(0, maxPlayed - player.secondsOnField);
+          }
+          const plainMissing =
+            diff > 0
+              ? formatMissing(diff).replace(/^Mangler\s*/, "")
+              : "0 sek";
+          timeSpan.classList.add("player-missing");
+          timeSpan.textContent =
+            "Manglende tid på banen: " + plainMissing;
+        }
 
         content.appendChild(nameSpan);
         content.appendChild(timeSpan);
-
-        if (!player.isOnField && maxPlayed > 0) {
-          const diff = Math.max(0, maxPlayed - player.secondsOnField);
-          if (diff > 0) {
-            const missingSpan = document.createElement("span");
-            missingSpan.classList.add("player-missing");
-            missingSpan.textContent = formatMissing(diff);
-            content.appendChild(missingSpan);
-          }
-        }
 
         const iconWrap = document.createElement("span");
         iconWrap.classList.add("player-icons");
@@ -965,7 +985,7 @@
     function addLatePlayer() {
       const name = prompt("Navn på ny spiller (sen ankomst):");
       if (!name) return;
-      addPlayer(name); // bruger samme funktion, så alt er centralt
+      addPlayer(name);
       showView("match");
     }
 
