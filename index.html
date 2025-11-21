@@ -273,8 +273,27 @@
       color: var(--muted);
     }
 
-    .simple-list li {
+    .setup-player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       padding: 0.18rem 0;
+    }
+
+    .setup-player-name {
+      flex: 1;
+    }
+
+    .setup-player-remove {
+      margin-left: 0.4rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      opacity: 0.8;
+    }
+
+    .setup-player-remove:hover {
+      opacity: 1;
+      transform: translateY(-1px);
     }
 
     .columns {
@@ -318,13 +337,20 @@
       border: 1px solid transparent;
       font-size: 0.85rem;
       display: inline-flex;
-      flex-direction: column;
-      align-items: flex-start;
-      min-width: 100px;
-      max-width: 220px;
+      align-items: center;
+      justify-content: space-between;
+      min-width: 120px;
+      max-width: 260px;
       background: rgba(15, 23, 42, 0.9);
       color: var(--fg);
       box-shadow: 0 6px 14px rgba(15, 23, 42, 0.7);
+    }
+
+    .player-content {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.05rem;
     }
 
     .player-name {
@@ -361,6 +387,19 @@
     .player-off {
       background: radial-gradient(circle at top, #0b1120, #020617);
       border-color: rgba(148, 163, 184, 0.5);
+    }
+
+    .player-remove {
+      margin-left: 0.5rem;
+      font-size: 1rem;
+      opacity: 0.8;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .player-remove:hover {
+      opacity: 1;
+      transform: translateY(-1px);
     }
 
     /* Afsnit 08 – Timer og statistik */
@@ -580,6 +619,7 @@
           <tr>
             <th>Spiller</th>
             <th>Spilletid</th>
+            <th>Mangler</th>
           </tr>
         </thead>
         <tbody id="statsBody"></tbody>
@@ -587,6 +627,7 @@
           <tr>
             <td>Samlet kampur</td>
             <td id="statsTotal">00:00</td>
+            <td></td>
           </tr>
         </tfoot>
       </table>
@@ -604,14 +645,14 @@
 
   <script>
     // Afsnit 14 – Data-strukturer
-    const players = []; // liste over alle spillere
+    const players = [];
     let nextPlayerId = 1;
 
     let timerRunning = false;
     let timerId = null;
     let totalSeconds = 0;
 
-    let currentView = "players"; // players | match | stats
+    let currentView = "players";
 
     // Afsnit 15 – Hjælpefunktioner (DOM + formatering)
     function $(id) {
@@ -625,20 +666,15 @@
     }
 
     function formatMissing(seconds) {
-      if (seconds <= 0) {
-        return "Mangler 0 sek";
-      }
       const rounded = Math.ceil(seconds);
+      if (rounded <= 0) return "Mangler 0 sek";
+
       const minutes = Math.floor(rounded / 60);
       const secs = rounded % 60;
 
       const parts = [];
-      if (minutes > 0) {
-        parts.push(minutes + " min");
-      }
-      if (secs > 0) {
-        parts.push(secs + " sek");
-      }
+      if (minutes > 0) parts.push(minutes + " min");
+      if (secs > 0) parts.push(secs + " sek");
 
       return "Mangler " + parts.join(" ");
     }
@@ -685,7 +721,22 @@
       ul.innerHTML = "";
       players.forEach((p) => {
         const li = document.createElement("li");
-        li.textContent = "• " + p.name;
+        li.classList.add("setup-player-row");
+
+        const nameSpan = document.createElement("span");
+        nameSpan.classList.add("setup-player-name");
+        nameSpan.textContent = p.name;
+
+        const removeSpan = document.createElement("span");
+        removeSpan.classList.add("setup-player-remove");
+        removeSpan.textContent = "🏃‍♂️";
+        removeSpan.title = "Slet spiller (går hjem)";
+        removeSpan.addEventListener("click", () => {
+          deletePlayer(p.id);
+        });
+
+        li.appendChild(nameSpan);
+        li.appendChild(removeSpan);
         ul.appendChild(li);
       });
     }
@@ -703,6 +754,9 @@
         btn.classList.add("player-btn");
         btn.classList.add(player.isOnField ? "player-on" : "player-off");
 
+        const content = document.createElement("div");
+        content.classList.add("player-content");
+
         const nameSpan = document.createElement("span");
         nameSpan.classList.add("player-name");
         nameSpan.textContent = player.name;
@@ -711,16 +765,30 @@
         timeSpan.classList.add("player-time");
         timeSpan.textContent = "Spilletid: " + formatClock(player.secondsOnField);
 
-        btn.appendChild(nameSpan);
-        btn.appendChild(timeSpan);
+        content.appendChild(nameSpan);
+        content.appendChild(timeSpan);
 
         if (!player.isOnField && maxPlayed > 0) {
           const diff = Math.max(0, maxPlayed - player.secondsOnField);
-          const missingSpan = document.createElement("span");
-          missingSpan.classList.add("player-missing");
-          missingSpan.textContent = formatMissing(diff);
-          btn.appendChild(missingSpan);
+          if (diff > 0) {
+            const missingSpan = document.createElement("span");
+            missingSpan.classList.add("player-missing");
+            missingSpan.textContent = formatMissing(diff);
+            content.appendChild(missingSpan);
+          }
         }
+
+        const removeSpan = document.createElement("span");
+        removeSpan.classList.add("player-remove");
+        removeSpan.textContent = "🏃‍♂️";
+        removeSpan.title = "Slet spiller (går hjem / udvist)";
+        removeSpan.addEventListener("click", (ev) => {
+          ev.stopPropagation();
+          deletePlayer(player.id);
+        });
+
+        btn.appendChild(content);
+        btn.appendChild(removeSpan);
 
         btn.addEventListener("click", () => {
           togglePlayerOnField(player.id);
@@ -738,16 +806,23 @@
       const body = $("statsBody");
       body.innerHTML = "";
 
+      const maxPlayed = getMaxPlayedSeconds();
+
       players.forEach((p) => {
         const tr = document.createElement("tr");
         const tdName = document.createElement("td");
         const tdTime = document.createElement("td");
+        const tdMissing = document.createElement("td");
 
         tdName.textContent = p.name;
         tdTime.textContent = formatClock(p.secondsOnField);
 
+        const diff = maxPlayed - p.secondsOnField;
+        tdMissing.textContent = diff > 0 ? formatMissing(diff) : "—";
+
         tr.appendChild(tdName);
         tr.appendChild(tdTime);
+        tr.appendChild(tdMissing);
         body.appendChild(tr);
       });
 
@@ -776,6 +851,26 @@
       fullRender();
     }
 
+    function deletePlayer(id) {
+      const index = players.findIndex((p) => p.id === id);
+      if (index === -1) return;
+
+      const name = players[index].name;
+      const ok = confirm(
+        'Vil du slette spilleren "' + name + '" helt fra holdet?'
+      );
+      if (!ok) return;
+
+      players.splice(index, 1);
+
+      if (players.length === 0) {
+        pauseTimer();
+        totalSeconds = 0;
+      }
+
+      fullRender();
+    }
+
     function togglePlayerOnField(id) {
       const player = players.find((p) => p.id === id);
       if (!player) return;
@@ -795,6 +890,10 @@
     // Afsnit 19 – Timer-logik
     function startTimer() {
       if (timerRunning) return;
+      if (players.length === 0) {
+        alert("Tilføj spillere før du starter tiden.");
+        return;
+      }
       timerRunning = true;
       $("toggleTimerButton").textContent = "⏸️ Pause tid";
 
